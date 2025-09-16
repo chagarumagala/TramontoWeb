@@ -1,0 +1,91 @@
+from django.db import models
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
+
+from django.conf import settings
+class UserManager(BaseUserManager):
+    def create_user(self, email, password=None, **extra_fields):
+        if not email:
+            raise ValueError('The Email field must be set')
+        email = self.normalize_email(email)
+        user = self.model(email=email, **extra_fields)
+        user.set_password(password)  # Hash the password
+        user.save(using=self._db)
+        return user
+
+    def create_superuser(self, email, password=None, **extra_fields):
+        extra_fields.setdefault('is_superuser', True)
+        extra_fields.setdefault('is_staff', True)
+        return self.create_user(email, password, **extra_fields)
+
+# Create your models here.
+class Users(AbstractBaseUser,PermissionsMixin):
+    cnpj = models.BigIntegerField(null=True, blank=True)
+    company_name = models.CharField(max_length=45, null=True, blank=True)
+    email = models.EmailField(max_length=45,default="aaa")
+    phone = models.BigIntegerField(null=True, blank=True)
+    name = models.CharField(max_length=45, unique=True, default="user")
+    is_active = models.BooleanField(default=True)  # Required for authentication
+    is_superuser = models.BooleanField(default=False)  # Required for superuser privileges
+    is_staff = models.BooleanField(default=False)  # Required for admin access
+    is_client = models.BooleanField(default=False)  # Custom field to indicate if the user is a client
+    objects = UserManager()
+
+    USERNAME_FIELD = 'name' 
+    REQUIRED_FIELDS = ['email'] 
+    def __str__(self):
+        return(f"ID:{self.id},name:{self.name}")
+
+class Checklist(models.Model):
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    creator = models.ForeignKey(Users,on_delete=models.CASCADE,related_name='created_checklists')
+    def __str__(self):
+        return self.name
+    
+class ChecklistItem(models.Model):
+    checklist = models.ForeignKey(Checklist, on_delete=models.CASCADE, related_name='items',null=True)
+    name = models.CharField(max_length=255)
+    completed = models.BooleanField(default=False)
+    order_index = models.IntegerField(default=0)  # Add order_index for sorting
+
+
+class Tests(models.Model):
+    initial_date = models.DateField(null=True, blank=True)
+    final_date = models.DateField(null=True, blank=True)
+    title = models.CharField(max_length=100,default="test")
+    creator = models.ForeignKey(
+        settings.AUTH_USER_MODEL,  # Reference the custom Users model
+        on_delete=models.CASCADE,  # Delete the test if the creator is deleted
+        related_name='created_tests'  # Allows reverse lookup (e.g., user.created_tests)
+    )
+    description = models.CharField(null=True, blank=True)
+    #black,white and grey-box
+    knowledge = models.CharField(max_length=10,default="black-box")
+    #low,medium and high
+    aggressivity = models.CharField(max_length=10,default="medium")
+    #covert and overt
+    approach = models.CharField(max_length=10,default="covert")
+    #internal and external
+    starting_point = models.CharField(max_length=10,default="external")
+    #network,web,physical,social,wireless
+    vector = models.CharField(max_length=40,default="network")
+    completed = models.BooleanField(default=False)
+    testers=models.ManyToManyField(
+        Users
+    )
+
+    checklist = models.ForeignKey(Checklist, on_delete=models.SET_NULL, null=True, blank=True)
+    def __str__(self):
+        return(f"ID:{self.id},name:{self.title}")
+
+class Tools(models.Model):
+    name = models.CharField(max_length=50,default="tool")
+    description = models.CharField(null=True, blank=True)
+    link = models.CharField(null=True, blank=True)
+    creator = models.ForeignKey(
+        Users,
+        on_delete=models.CASCADE
+    )
+    def __str__(self):
+        return(f"ID:{self.id},name:{self.name}")
+    
