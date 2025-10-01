@@ -10,7 +10,7 @@ body {
   background-color: #f4f6f8;
   color: #333;
   height: 100vh;
-  overflow: hidden;
+  overflow: auto;
 }
 
 /* Layout wrapper */

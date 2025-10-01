@@ -9,7 +9,7 @@ urlpatterns = [
     path('tests/<int:pk>/', views.view_edit_delete_test, name='get_test'),  # Retrieve a specific test
     path('tests/<int:pk>/update/', views.view_edit_delete_test, name='update_test'),  # Update a specific test
     path('tests/<int:pk>/delete/', views.view_edit_delete_test, name='delete_test'),  # Delete a specific test
-
+    path('tests/<int:test_id>/remove-checklist/', views.remove_checklist_from_test, name='remove_checklist_from_test'),
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/register/', views.register, name='register'),
@@ -27,7 +27,13 @@ urlpatterns = [
     #path('checklists/<int:checklist_id>/delete/', views.delete_checklist, name='delete_checklist'),
     path('checklists/checklist-items/<int:item_id>/delete/', views.delete_checklist_item, name='delete_checklist_item'),
     path('checklists/<int:checklist_id>/delete/', views.delete_checklist, name='delete_checklist'),
+    path('tests/<int:test_id>/relate-checklist/', views.relate_checklist_to_test, name='relate_checklist_to_test'),
+    path('checklists/<int:checklist_id>/items/', views.get_checklist_items, name='get_checklist_items'),
+    path('checklist-items/<int:item_id>/toggle-completion/', views.toggle_completion, name='toggle_completion'),
+    path('tests/<int:test_id>/vulnerabilities/create/', views.create_vulnerability, name='create_vulnerability'),
+    path('vulnerabilities/<int:vuln_id>/delete/', views.delete_vulnerability, name='delete_vulnerability'),
+    path('tests/<int:test_id>/vulnerabilities/<int:vuln_id>/edit/', views.edit_vulnerability, name='edit_vulnerability'),
+    path('vulnerabilities/<int:vuln_id>/', views.fetch_vulnerability, name='fetch_vulnerability'),
 
-    
 ]
 

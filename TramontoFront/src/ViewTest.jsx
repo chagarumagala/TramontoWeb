@@ -7,12 +7,19 @@ export default function ViewTest() {
   const { testId } = useParams(); // Get the test ID from the URL
   const [test, setTest] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
+  const [checklists, setChecklists] = useState([]);
+  const [checklist, setChecklist] = useState(null);
+  const [selectedChecklist, setSelectedChecklist] = useState('');
+  const [checklistItems, setChecklistItems] = useState([]);
+  const [loadingItemIds, setLoadingItemIds] = useState([]);
+  const [vulnerabilities, setVulnerabilities] = useState([]);
+
   const navigate = useNavigate();
   const [emailToAdd, setEmailToAdd] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   useEffect(() => {
     const fetchTest = async () => {
-      try {
+      try { 
         const accessToken = localStorage.getItem('access_token');
         const response = await axios.get(`http://127.0.0.1:8000/tests/${testId}/`, {
           headers: {
@@ -20,14 +27,35 @@ export default function ViewTest() {
           },
         });
         setTest(response.data);
+        setVulnerabilities(response.data.vulnerabilities || []);
+        if (response.data.checklist) {
+          setChecklist(response.data.checklist);
+          setChecklistItems(response.data.checklist.items || []);
+        }
       } catch (err) {
         console.error('Error fetching test:', err.response?.data);
         setErrorMessage('Failed to load test details.');
       }
     };
+    const fetchChecklists = async () => { 
+      try {
+        const accessToken = localStorage.getItem('access_token');
+        const response = await axios.get('http://127.0.0.1:8000/checklists/', {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        }); 
+        const filteredChecklists = response.data.filter((checklist) => !checklist.clone);
+        setChecklists(filteredChecklists); 
+        
+      } catch (err) {
+        console.error('Error fetching checklists:', err.response?.data);
+        setErrorMessage('Failed to load checklists.');
+      }
+    };
 
     fetchTest();
+    fetchChecklists();
   }, [testId]);
+ 
   const handleAddUser = async () => {
     try {
       const accessToken = localStorage.getItem('access_token');
@@ -62,6 +90,96 @@ export default function ViewTest() {
       setErrorMessage('Failed to delete test.');
     }
   };
+  const handleDeleteChecklist = async () => {
+    try {
+      const accessToken = localStorage.getItem('access_token');
+      const response = await axios.delete(`http://127.0.0.1:8000/tests/${testId}/remove-checklist/`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+  
+      setSuccessMessage(response.data.message);
+      setErrorMessage('');
+      setTest((prev) => ({
+        ...prev,
+        checklist: null, // Remove the checklist from the test state
+      }));
+      setChecklist(null); // Clear the checklist state
+      setChecklistItems([]); // Clear the checklist items state
+    } catch (err) {
+      console.error('Error deleting checklist:', err.response?.data);
+      setErrorMessage('Failed to delete checklist.');
+    }
+  };
+  const handleRelateChecklist = async () => {
+    if (!selectedChecklist) {
+      setErrorMessage('Please select a checklist.');
+      return;
+    }
+    try {
+      const accessToken = localStorage.getItem('access_token');
+      const response = await axios.post(
+        `http://127.0.0.1:8000/tests/${testId}/relate-checklist/`,
+        { checklist_id: selectedChecklist },
+        {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        }
+      );
+      
+      setSuccessMessage(response.data.message);
+      setErrorMessage('');
+      window.location.reload();
+
+    } catch (err) {
+      console.error('Error relating checklist to test:', err.response?.data);
+      setErrorMessage('Failed to relate checklist to the test.');
+      setSuccessMessage('');
+    }
+  };
+  const handleDeleteVulnerability = async (vulnId) => {
+    if (!window.confirm('Are you sure you want to delete this vulnerability?')) {
+      return;
+    }
+  
+    try {
+      const accessToken = localStorage.getItem('access_token');
+      await axios.delete(`http://127.0.0.1:8000/vulnerabilities/${vulnId}/delete/`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+  
+      // Remove the vulnerability from the state
+      setVulnerabilities((prev) => prev.filter((vuln) => vuln.id !== vulnId));
+    } catch (err) {
+      console.error('Error deleting vulnerability:', err.response?.data);
+      alert('Failed to delete vulnerability.');
+    }
+  };
+  
+  const toggleItemCompletion = async (itemId, currentStatus) => {
+    try {
+      setLoadingItemIds((prev) => [...prev, itemId]);
+
+      const accessToken = localStorage.getItem('access_token');
+      await axios.patch(
+        `http://127.0.0.1:8000/checklist-items/${itemId}/toggle-completion/`,
+        { completed: !currentStatus },
+        {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        }
+      ); 
+      // Update the item's completed status locally
+      setChecklistItems((prevItems) =>
+        prevItems.map((item) =>
+          item.id === itemId ? { ...item, completed: !currentStatus } : item
+        )
+      );
+    } catch (err) {
+      console.error('Error toggling item completion:', err.response?.data);
+      setErrorMessage('Failed to update item status.');
+    }
+  };
+  const reloadPage = () => {
+    window.location.reload();
+  };
 
   if (errorMessage) {
     return <p className="text-red-500 text-center">{errorMessage}</p>;
@@ -73,10 +191,13 @@ export default function ViewTest() {
   const isCreator = test.creator.id === parseInt(test.user_id, 10); // Check if the logged-in user is the creator
 
   return (
-    <div className="min-h-screen flex items-left justify-left bg-white-100">
-      <div className="p-6">
+    <div className="flex justify-between items-start mb-6">
+      <div className="flex-1">
+        <h2 className="text-2xl font-bold mb-6 text-center">{test.title}</h2>
         <h2 className="text-2xl font-bold mb-6 text-center">{test.title}</h2>
         <p><strong>Description:</strong> {test.description}</p>
+        <p><strong>initial date:</strong> {test.initial_date}</p>
+        <p><strong>final date:</strong> {test.final_date}</p>
         <p><strong>Knowledge:</strong> {test.knowledge}</p>
         <p><strong>Aggressivity:</strong> {test.aggressivity}</p>
         <p><strong>Approach:</strong> {test.approach}</p>
@@ -91,33 +212,34 @@ export default function ViewTest() {
           ))}
         </ul>
         {isCreator && ( // Render Edit and Delete buttons only for the creator
+          
           <div className="mt-4">
             <button
               onClick={() => navigate(`/tests/${testId}/update`)} // Navigate to the edit page
-              className="w-full bg-yellow-500 text-white py-2 rounded-lg hover:bg-yellow-600 transition mb-2"
+              className="border px-4 py-2 rounded-lg mb-2 text-white"
             >
               Edit Test
             </button>
             <button
               onClick={handleDelete} // Call the delete handler
-              className="w-full bg-red-500 text-white py-2 rounded-lg hover:bg-red-600 transition"
+              className="border px-4 py-2 rounded-lg mb-2 text-white"
             >
               Delete Test
             </button>
             <h2 className="text-lg font-bold mb-2">Add User to Test</h2>
-          <input
+            <input
             type="email"
             placeholder="Enter user email"
             value={emailToAdd}
             onChange={(e) => setEmailToAdd(e.target.value)}
             className="border px-4 py-2 rounded-lg mb-2"
-          />
-          <button
-            onClick={handleAddUser}
-            className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
-          >
-            Add User
-          </button>
+            />
+            <button
+              onClick={handleAddUser}
+              className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
+            >
+              Add User
+            </button>
           {successMessage && <p className="text-green-500 mt-2">{successMessage}</p>}
           {errorMessage && <p className="text-red-500 mt-2">{errorMessage}</p>}
           </div>
@@ -128,7 +250,158 @@ export default function ViewTest() {
         >
           Back to Tests
         </button>
+      
+      {!test.checklist && (
+      <div className="bg-gray-50 rounded-lg p-4 mb-6">
+        <h2 className="text-lg font-semibold mb-4">Relate a Checklist</h2>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-gray-700 mb-2">Select Checklist</label>
+            <select
+              value={selectedChecklist}
+              onChange={(e) => setSelectedChecklist(e.target.value)}
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">-- Select a Checklist --</option>
+              {checklists.map((checklist) => (
+                <option key={checklist.id} value={checklist.id}>
+                  {checklist.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <button
+            onClick={handleRelateChecklist}
+            className="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition"
+          >
+            Relate Checklist
+          </button>
+        </div>
       </div>
+      )}
+      {test.checklist && (
+        <div className="bg-gray-50 rounded-lg p-4">
+          <h2 className="text-lg font-semibold mb-4"> {test.checklist.name}</h2>
+          
+           <ul className="space-y-4">
+            {test.checklist.items.map((item) => (
+              <li key={item.id} className="flex justify-between items-center">
+                <span
+        className={`block ${item.completed ? 'line-through text-gray-500' : ''}`}
+        style={{
+          maxWidth: '30%', // Limit the width of the text
+          wordWrap: 'break-word', // Break long words
+          overflowWrap: 'break-word', // Ensure text wraps properly
+        }}
+      >
+        {item.name}
+      </span>
+                <button
+                  onClick={() => toggleItemCompletion(item.id, item.completed)}
+                  className={`py-1 px-3 rounded-lg ${
+                    item.completed
+                      ? 'bg-green-500 text-white hover:bg-green-600'
+                      : 'bg-gray-500 text-white hover:bg-gray-600'
+                  } transition`}
+                >
+                {loadingItemIds.includes(item.id) ? 'Updating...' : item.completed ? 'Mark Incomplete' : 'Mark Complete'}
+            </button>
+              </li>
+            ))}
+            <button
+            onClick={reloadPage}
+            className="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition"
+          >
+            update Checklist
+          </button>
+          <button
+            onClick={handleDeleteChecklist}
+            className="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition"
+          >
+            remove Checklist
+          </button>
+          </ul>
+        </div>
+      )}
+      <div className="mt-6">
+        <h2 className="text-xl font-bold mb-4">Vulnerabilities Found</h2>
+        <button
+          onClick={() => navigate(`/tests/${testId}/vulnerabilities/create`)}
+          className="border px-4 py-2 rounded-lg mb-2 text-white"
+        >
+          Add vulnerability
+        </button>
+        {vulnerabilities.length > 0 ? (
+          <ul className="space-y-4">
+            {vulnerabilities.map((vuln) => (
+              
+              <li key={vuln.id} className="border p-4 rounded-lg">
+                <h3
+            className={`text-lg font-semibold ${
+              vuln.success === false ? 'text-red-500' : ''
+            }`}
+          >
+            {vuln.vuln}
+          </h3>
+
+          {/* Vulnerability Description */}
+          <p><strong>Description:</strong> {vuln.description}</p>
+
+          {/* Additional Fields (Only if success is true) */}
+          {vuln.success && (
+            <>
+              <p><strong>Vector:</strong> {vuln.vector}</p>
+              <p><strong>Recommendation:</strong> {vuln.recommendation}</p>
+            </>
+          )}
+          {!vuln.success && (
+            <>
+              <p><strong>Exploit unsuccessful</strong></p> 
+            </>
+          )}
+          {vuln.tools && vuln.tools.length > 0 && (
+            <div className="mt-2">
+              <p><strong>Tools used:</strong></p>
+              <ul className="list-disc pl-5">
+                {vuln.tools.map((tool,index) => (
+                  <React.Fragment key={tool.id}>
+                  <a
+                    href={tool.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-500 hover:underline"
+                  >
+                    {tool.name}
+                  </a> 
+                  {index < vuln.tools.length - 1 && ', '}
+
+                </React.Fragment>
+                ))}
+              </ul>
+            </div>
+          )}
+                <button
+              onClick={() => handleDeleteVulnerability(vuln.id)}
+              className="bg-red-500 text-red-500 py-1 px-3 rounded-lg hover:bg-red-600 transition mt-2"
+            >
+              Delete
+            </button>
+            <button
+              onClick={() => navigate(`/tests/${testId}/vulnerabilities/${vuln.id}/edit`)}
+              className="bg-yellow-500 text-white py-1 px-3 rounded-lg hover:bg-yellow-600 transition mt-2"
+            >
+              Edit
+            </button>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p>No vulnerabilities found for this test.</p>
+        )}
+      </div>
+    
+    </div>
+    
     </div>
   );
 }

@@ -44,14 +44,14 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'corsheaders.middleware.CorsMiddleware'
+    'django.middleware.clickjacking.XFrameOptionsMiddleware'
 ]
 
 ROOT_URLCONF = 'TramontoWeb.urls'
@@ -90,8 +90,13 @@ DATABASES = {
 }
 AUTH_USER_MODEL = 'Tramonto.Users'
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://localhost:5173"  # React development server
+    "http://localhost:3000",  # Frontend origin
+    "http://127.0.0.1:3000",
+    "http://localhost:5173",  # Frontend origin
+    "http://127.0.0.1:5173",
+    "http://localhost:8000",  # Frontend origin
+    "http://127.0.0.1:8000",
+    
 ]
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -122,7 +127,10 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 
 USE_TZ = True
+SESSION_COOKIE_AGE = 12 * 60 * 60  # 12 hours in seconds
 
+# Optional: Ensure the session expires when the browser is closed
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/

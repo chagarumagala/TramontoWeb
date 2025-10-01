@@ -17,7 +17,7 @@ import Header from './Header';
 import Checklists from './Checklists';
 import CreateChecklist from './CreateChecklist';
 import ViewChecklist from './ViewChecklist';
-
+import CreateVuln from './CreateVuln';
 function App() {
   return (
     <Router>
@@ -42,6 +42,8 @@ function App() {
           <Route path="/checklists" element={<Checklists />} />
           <Route path="/checklists/create" element={<CreateChecklist />} />
           <Route path="/checklists/:checklistId" element={<ViewChecklist />} />
+          <Route path="/tests/:testId/vulnerabilities/create" element={<CreateVuln />} />
+          <Route path="/tests/:testId/vulnerabilities/:vulnId/edit" element={<CreateVuln isEditMode={true}/>} />
           
         </Route>
       </Routes>

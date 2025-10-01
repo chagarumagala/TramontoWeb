@@ -17,8 +17,7 @@ const Login = () => {
         password: password,
       });
       localStorage.setItem('access_token', response.data.access);
-      localStorage.setItem('refresh_token', response.data.refresh);
-      console.log('Login successful:', Cookies.get('user_id'));
+      localStorage.setItem('refresh_token', response.data.refresh); 
       navigate('/dashboard');
     } catch (err) {
       console.error('Login error:', err.response?.data);

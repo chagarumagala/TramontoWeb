@@ -7,11 +7,9 @@ const Login = () => {
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const navigate = useNavigate();
-  console.log('page');
+  const navigate = useNavigate(); 
   const handleLogin = async (e) => {
-    e.preventDefault();
-    console.log('handlelogin');
+    e.preventDefault(); 
     try {
       const response = await axios({
         method: 'post',

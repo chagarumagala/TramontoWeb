@@ -23,7 +23,6 @@ const Tools = () => {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
       setTools(response.data.tools);
-      console.log(response.data);
     } catch (err) {
       console.error('Error fetching tools:', err.response?.data);
       setErrorMessage('Failed to load tools.');
@@ -141,7 +140,7 @@ const Tools = () => {
               value={newToolLink}
               onChange={(e) => setNewToolLink(e.target.value)}
               className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Enter tool name"
+              placeholder="Enter tool link"
               required
               disabled={addingTool}
             />
@@ -154,7 +153,7 @@ const Tools = () => {
             {addingTool ? 'Adding...' : 'Add Tool'}
           </button>
         </form>
-      </div>
+      </div>          
 
       {/* Tools Table */}
       {tools.length === 0 ? (
@@ -168,9 +167,10 @@ const Tools = () => {
           <table className="table-auto w-full border-collapse border border-gray-300">
             <thead>
               <tr className="bg-gray-100">
-                <th className="border border-gray-300 px-4 py-2 text-left">Name</th>
-                <th className="border border-gray-300 px-4 py-2 text-left">Description</th>
-                <th className="border border-gray-300 px-4 py-2 text-left">link</th>
+                <th className="border border-gray-300 px-4 py-2 text-center">Name</th>
+                <th className="border border-gray-300 px-4 py-2 text-center">Description</th>
+                <th className="border border-gray-300 px-4 py-2 text-center">link</th>
+                <th className="border border-gray-300 px-4 py-2 text-center">delete</th>
               </tr>
             </thead>
             <tbody>

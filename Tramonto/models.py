@@ -39,6 +39,7 @@ class Checklist(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
     creator = models.ForeignKey(Users,on_delete=models.CASCADE,related_name='created_checklists')
+    clone = models.BooleanField(default=False)
     def __str__(self):
         return self.name
     
@@ -74,10 +75,12 @@ class Tests(models.Model):
         Users
     )
 
+
     checklist = models.ForeignKey(Checklist, on_delete=models.SET_NULL, null=True, blank=True)
     def __str__(self):
         return(f"ID:{self.id},name:{self.title}")
 
+    
 class Tools(models.Model):
     name = models.CharField(max_length=50,default="tool")
     description = models.CharField(null=True, blank=True)
@@ -89,3 +92,28 @@ class Tools(models.Model):
     def __str__(self):
         return(f"ID:{self.id},name:{self.name}")
     
+class Vulnerabilities(models.Model):
+    vuln=models.CharField(max_length=100,default="vuln")
+    description = models.TextField(null=True, blank=True)
+    success = models.BooleanField(default=True)
+    code = models.CharField(null=True, blank=True)
+    score = models.FloatField(null=True, blank=True)
+    vector = models.CharField(max_length=50,default="N/A")
+    attack_vector = models.CharField(max_length=20,default="N")
+    attack_complexity = models.CharField(max_length=20,default="L")
+    privileges_required = models.CharField(max_length=20,default="N")
+    user_interaction = models.CharField(max_length=20,default="N")
+    scope = models.CharField(max_length=20,default="U")
+    confidentiality = models.CharField(max_length=20,default="L")
+    integrity = models.CharField(max_length=20,default="L")
+    availability = models.CharField(max_length=20,default="L")
+    recommendation = models.TextField(null=True, blank=True)
+    test = models.ForeignKey(
+        Tests,
+        on_delete=models.CASCADE,
+        related_name='vulnerabilities'
+    )
+    author = models.CharField(max_length=50,default="N/A")
+    tools = models.ManyToManyField(
+        Tools
+    )

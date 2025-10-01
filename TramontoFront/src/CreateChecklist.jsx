@@ -68,7 +68,7 @@ const CreateChecklist = () => {
 
         <div className="flex space-x-4">
           <Button
-            type="button" class="text-white bg-blue-700 hover:bg-blue-800 padding-left-[80px] focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+            type="submit" class="text-white bg-blue-700 hover:bg-blue-800 padding-left-[80px] focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
             disabled={loading}
           >
             {loading ? 'Creating...' : 'Create Checklist'}

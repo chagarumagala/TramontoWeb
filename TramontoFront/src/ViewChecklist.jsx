@@ -95,13 +95,11 @@ const ViewChecklist = () => {
 
     try {
       const accessToken = localStorage.getItem('access_token');
-      const url = `http://127.0.0.1:8000/checklists/checklist-items/${itemId}/delete/`;
-    console.log('DELETE URL:', url);
+      const url = `http://127.0.0.1:8000/checklists/checklist-items/${itemId}/delete/`; 
     
     const response = await axios.delete(url, {
       headers: { Authorization: `Bearer ${accessToken}` }
-    });
-      console.log("test");
+    }); 
       // Remove item from checklist without refreshing
       setChecklist(prev => ({
         ...prev,

@@ -6,6 +6,7 @@ export default function CreateTest({ isEditMode = false }) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [knowledge, setKnowledge] = useState('black-box');
+  const [finalDate, setFinalDate] = useState('');
   const [aggressivity, setAggressivity] = useState('medium');
   const [approach, setApproach] = useState('covert');
   const [startingPoint, setStartingPoint] = useState('external');
@@ -29,7 +30,8 @@ export default function CreateTest({ isEditMode = false }) {
           });
           const test = response.data;
           setTitle(test.title);
-          setDescription(test.description);
+          setDescription(test.description); 
+          setFinalDate(test.final_date);
           setKnowledge(test.knowledge);
           setAggressivity(test.aggressivity);
           setApproach(test.approach);
@@ -46,8 +48,7 @@ export default function CreateTest({ isEditMode = false }) {
   }, [isEditMode, testId]);
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-
+    e.preventDefault(); 
     try {
       const accessToken = localStorage.getItem('access_token');
       if (isEditMode) {
@@ -57,6 +58,7 @@ export default function CreateTest({ isEditMode = false }) {
           {
             title,
             description,
+            final_date: finalDate,
             knowledge,
             aggressivity,
             approach,
@@ -80,6 +82,7 @@ export default function CreateTest({ isEditMode = false }) {
           {
             title,
             description,
+            final_date: finalDate,
             knowledge,
             aggressivity,
             approach,
@@ -129,6 +132,16 @@ export default function CreateTest({ isEditMode = false }) {
             ></textarea>
           </div>
           <div>
+          <div className="mb-4">
+        <label className="block text-gray-700 mb-2">Final Date</label>
+        <input
+          type="date"
+          value={finalDate}
+          onChange={(e) => setFinalDate(e.target.value)}
+          className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          min={new Date().toISOString().split('T')[0]} // Set the minimum date to today
+        />
+      </div>
   <label className="block text-white-700">Knowledge:</label>
   <div className="space-y-2">
     <label className="flex items-white space-x-2">
