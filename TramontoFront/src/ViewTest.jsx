@@ -6,6 +6,8 @@ import Cookies from 'js-cookie';
 export default function ViewTest() {
   const { testId } = useParams(); // Get the test ID from the URL
   const [test, setTest] = useState(null);
+  const [activeTab, setActiveTab] = useState('test'); // Default to "Test Information" tab
+
   const [errorMessage, setErrorMessage] = useState('');
   const [checklists, setChecklists] = useState([]);
   const [checklist, setChecklist] = useState(null);
@@ -191,10 +193,40 @@ export default function ViewTest() {
   const isCreator = test.creator.id === parseInt(test.user_id, 10); // Check if the logged-in user is the creator
 
   return (
-    <div className="flex justify-between items-start mb-6">
+    
+    <div>
+      <h2 className="text-2xl font-bold mb-6 text-center">{test.title}</h2>
+      <div className="flex border-b border-gray-300 mb-4">
+        <button
+          onClick={() => setActiveTab('test')}
+          className={`px-4 py-2 ${
+            activeTab === 'test' ? 'border-b-2 border-blue-500 text-blue-500' : 'text-gray-500'
+          }`}
+        >
+          Test Information
+        </button>
+        <button
+          onClick={() => setActiveTab('checklist')}
+          className={`px-4 py-2 ${
+            activeTab === 'checklist' ? 'border-b-2 border-blue-500 text-blue-500' : 'text-gray-500'
+          }`}
+        >
+          Checklist
+        </button>
+        <button
+          onClick={() => setActiveTab('vulnerabilities')}
+          className={`px-4 py-2 ${
+            activeTab === 'vulnerabilities' ? 'border-b-2 border-blue-500 text-blue-500' : 'text-gray-500'
+          }`}
+        >
+          Vulnerabilities
+        </button>
+      </div>
+      
       <div className="flex-1">
-        <h2 className="text-2xl font-bold mb-6 text-center">{test.title}</h2>
-        <h2 className="text-2xl font-bold mb-6 text-center">{test.title}</h2>
+      {activeTab === 'test' && (
+      <div>
+        <h2 className="text-2xl font-bold mb-6 text-center">{test.title}</h2> 
         <p><strong>Description:</strong> {test.description}</p>
         <p><strong>initial date:</strong> {test.initial_date}</p>
         <p><strong>final date:</strong> {test.final_date}</p>
@@ -250,7 +282,10 @@ export default function ViewTest() {
         >
           Back to Tests
         </button>
-      
+        </div>
+        )}
+        {activeTab === 'checklist' && (
+          <div>
       {!test.checklist && (
       <div className="bg-gray-50 rounded-lg p-4 mb-6">
         <h2 className="text-lg font-semibold mb-4">Relate a Checklist</h2>
@@ -281,7 +316,7 @@ export default function ViewTest() {
       )}
       {test.checklist && (
         <div className="bg-gray-50 rounded-lg p-4">
-          <h2 className="text-lg font-semibold mb-4"> {test.checklist.name}</h2>
+          <h2 className="text-lg font-semibold mb-6"> {test.checklist.name}</h2>
           
            <ul className="space-y-4">
             {test.checklist.items.map((item) => (
@@ -323,83 +358,104 @@ export default function ViewTest() {
           </ul>
         </div>
       )}
+      </div>
+        )}
+        {activeTab === 'vulnerabilities' && (
+          <div>
       <div className="mt-6">
-        <h2 className="text-xl font-bold mb-4">Vulnerabilities Found</h2>
-        <button
-          onClick={() => navigate(`/tests/${testId}/vulnerabilities/create`)}
-          className="border px-4 py-2 rounded-lg mb-2 text-white"
-        >
-          Add vulnerability
-        </button>
-        {vulnerabilities.length > 0 ? (
-          <ul className="space-y-4">
-            {vulnerabilities.map((vuln) => (
-              
-              <li key={vuln.id} className="border p-4 rounded-lg">
-                <h3
-            className={`text-lg font-semibold ${
-              vuln.success === false ? 'text-red-500' : ''
-            }`}
+        <div classname="flex w-full justify-between items-center mb-4">
+          <h2 className="text-xl font-bold mb-4">Vulnerabilities Found</h2>
+          <button
+            onClick={() => navigate(`/tests/${testId}/vulnerabilities/create`)}
+            className="border px-4 py-2 rounded-lg mb-2 text-white"
           >
-            {vuln.vuln}
-          </h3>
-
-          {/* Vulnerability Description */}
-          <p><strong>Description:</strong> {vuln.description}</p>
-
-          {/* Additional Fields (Only if success is true) */}
-          {vuln.success && (
-            <>
-              <p><strong>Vector:</strong> {vuln.vector}</p>
-              <p><strong>Recommendation:</strong> {vuln.recommendation}</p>
-            </>
-          )}
-          {!vuln.success && (
-            <>
-              <p><strong>Exploit unsuccessful</strong></p> 
-            </>
-          )}
-          {vuln.tools && vuln.tools.length > 0 && (
-            <div className="mt-2">
-              <p><strong>Tools used:</strong></p>
-              <ul className="list-disc pl-5">
-                {vuln.tools.map((tool,index) => (
-                  <React.Fragment key={tool.id}>
-                  <a
-                    href={tool.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-500 hover:underline"
-                  >
-                    {tool.name}
-                  </a> 
-                  {index < vuln.tools.length - 1 && ', '}
-
-                </React.Fragment>
-                ))}
-              </ul>
+            Add vulnerability
+          </button>
+        </div>
+        {vulnerabilities.length > 0 ? (
+        
+          <div className="overflow-x-auto">
+              <table className="table-auto border-collapse border border-gray-300 w-full">
+                <thead>
+                  <tr className="bg-gray-100">
+                    <th className="border border-gray-300 px-4 py-2">Name</th>
+                    <th className="border border-gray-300 px-4 py-2">Description</th> 
+                    <th className="border border-gray-300 px-4 py-2">Vector</th>
+                    <th className="border border-gray-300 px-4 py-2">Recommendation</th>
+                    <th className="border border-gray-300 px-4 py-2">Tools</th>
+                    <th className="border border-gray-300 px-4 py-2">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {vulnerabilities.map((vuln) => (
+                    <tr key={vuln.id} className="hover:bg-gray-50"> 
+                      <td className="border border-gray-300 px-4 py-2">
+                        <span
+                          className={`font-semibold ${
+                            vuln.success === false ? 'text-red-500' : ''
+                          }`}
+                        >
+                          {vuln.vuln}
+                        </span>
+                      </td>
+          
+                      <td className="border border-gray-300 px-4 py-2">{vuln.description}</td>
+          
+                       
+          
+                      <td className="border border-gray-300 px-4 py-2">
+                        {vuln.success ? vuln.vector : 'N/A'}
+                      </td>
+          
+                      <td className="border border-gray-300 px-4 py-2">
+                        {vuln.success ? vuln.recommendation : 'N/A'}
+                      </td>
+          
+                      <td className="border border-gray-300 px-4 py-2">
+                        {vuln.tools && vuln.tools.length > 0 ? (
+                          vuln.tools.map((tool, index) => (
+                            <React.Fragment key={tool.id}>
+                              <a
+                                href={tool.link}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-500 hover:underline"
+                              >
+                                {tool.name}
+                              </a>
+                              {index < vuln.tools.length - 1 && ', '}
+                            </React.Fragment>
+                          ))
+                        ) : (
+                          'No tools'
+                        )}
+                      </td>
+          
+                      <td className="border border-gray-300 px-4 py-2">
+                        <button
+                          onClick={() => navigate(`/tests/${testId}/vulnerabilities/${vuln.id}/edit`)}
+                          className="bg-yellow-500 text-white py-1 px-3 rounded-lg hover:bg-yellow-600 transition"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleDeleteVulnerability(vuln.id)}
+                          className="bg-red-500 text-white py-1 px-3 rounded-lg hover:bg-red-600 transition ml-2"
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-          )}
-                <button
-              onClick={() => handleDeleteVulnerability(vuln.id)}
-              className="bg-red-500 text-red-500 py-1 px-3 rounded-lg hover:bg-red-600 transition mt-2"
-            >
-              Delete
-            </button>
-            <button
-              onClick={() => navigate(`/tests/${testId}/vulnerabilities/${vuln.id}/edit`)}
-              className="bg-yellow-500 text-white py-1 px-3 rounded-lg hover:bg-yellow-600 transition mt-2"
-            >
-              Edit
-            </button>
-              </li>
-            ))}
-          </ul>
         ) : (
           <p>No vulnerabilities found for this test.</p>
         )}
       </div>
-    
+      </div>
+        )}
     </div>
     
     </div>
