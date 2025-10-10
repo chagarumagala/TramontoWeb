@@ -135,7 +135,7 @@ export default function CreateVuln({ isEditMode = false }) {
         );
         setSuccessMessage('vuln created successfully!');
       }
-      navigate(`/tests/${testId}`); // Redirect to tests page
+      navigate(`/tests/${testId}`, { state: { activeTab: 'vulnerabilities' } }); // Redirect to tests page
     } catch (err) {
       console.error('Error submitting vuln:', err.response?.data);
       setErrorMessage('Failed to submit vuln.');

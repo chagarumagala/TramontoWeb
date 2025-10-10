@@ -45,7 +45,7 @@ const Header = () => {
           <h4 className="text-2xl font-bold mb-6">Tramonto</h4>
           <h4 className="text-2xl font-bold mb-6">Tramonto</h4>
           <nav className="space-y-4">
-            <Link to="/dashboard" className="block py-2 px-3 rounded hover:bg-gray-700 hover:text-red-400 transition-colors">
+            <Link to="/dashboard" className="block py-7 px-7 rounded hover:bg-gray-700 hover:text-red-400 transition-colors">
               Dashboard
             </Link>
             <Link to="/tests" className="block py-2 px-3 rounded hover:bg-gray-700 hover:text-red-400 transition-colors">

@@ -173,7 +173,7 @@ def view_edit_delete_test(request, pk):
                     'name': test.creator.name,
                 },
                 'testers': [
-                    {'id': tester.id, 'name': tester.name} for tester in test.testers.all()
+                    {'id': tester.id, 'name': tester.name,'is_client':tester.is_client} for tester in test.testers.all()
                 ],
                 'user_id': request.user.id,
                 'is_client': request.user.is_client,
@@ -740,5 +740,19 @@ def fetch_vulnerability(request, vuln_id):
         }, status=200)
     except Vulnerabilities.DoesNotExist:
         return JsonResponse({'error': 'Vulnerability not found.'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def complete_test(request,test_id):
+    try:
+        test = Tests.objects.get(id=test_id)
+        if request.user != test.creator:
+            return JsonResponse({'error': 'You are not authorized to complete this test.'}, status=403)
+        test.completed = not test.completed
+        test.save()
+        return JsonResponse({'message': 'Test marked as completed.'}, status=200)
+    except Tests.DoesNotExist:
+        return JsonResponse({'error': 'Test not found.'}, status=404)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=400)

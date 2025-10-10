@@ -1,12 +1,14 @@
-import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useEffect, useState,useRef } from 'react';
+import { useParams, useNavigate,useLocation } from 'react-router-dom';
 import axios from 'axios';
 import Cookies from 'js-cookie';
+import { jsPDF } from 'jspdf'; // Import jsPDF for PDF generation
 
 export default function ViewTest() {
   const { testId } = useParams(); // Get the test ID from the URL
   const [test, setTest] = useState(null);
   const [activeTab, setActiveTab] = useState('test'); // Default to "Test Information" tab
+  const location = useLocation(); // Use useLocation to read state
 
   const [errorMessage, setErrorMessage] = useState('');
   const [checklists, setChecklists] = useState([]);
@@ -15,11 +17,15 @@ export default function ViewTest() {
   const [checklistItems, setChecklistItems] = useState([]);
   const [loadingItemIds, setLoadingItemIds] = useState([]);
   const [vulnerabilities, setVulnerabilities] = useState([]);
+  const pdfRef = useRef(); // Reference to the HTML content
 
   const navigate = useNavigate();
   const [emailToAdd, setEmailToAdd] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   useEffect(() => {
+    if (location.state?.activeTab) {
+      setActiveTab(location.state.activeTab);
+    }
     const fetchTest = async () => {
       try { 
         const accessToken = localStorage.getItem('access_token');
@@ -56,7 +62,7 @@ export default function ViewTest() {
 
     fetchTest();
     fetchChecklists();
-  }, [testId]);
+  }, [testId, location.state]);
  
   const handleAddUser = async () => {
     try {
@@ -76,6 +82,27 @@ export default function ViewTest() {
       console.error('Error adding user to test:', err.response?.data);
       setErrorMessage('Failed to add user to the test.');
       setSuccessMessage('');
+    }
+  };
+  const handleCompleteTest = async () => {
+    if (!window.confirm('Are you sure you want to complete the test?')) {
+      return;
+    }
+    try { // Set loading state to true
+      const accessToken = localStorage.getItem('access_token');
+      await axios.put(
+        `http://127.0.0.1:8000/tests/${testId}/complete/`,// Payload to mark the test as completed
+        { completed: true },
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+      console.log("test flipped")
+      window.location.reload()   
+    } catch (err) {
+      console.error('Error completing the test:', err.response?.data); 
     }
   };
   const handleDelete = async () => {
@@ -155,6 +182,7 @@ export default function ViewTest() {
       alert('Failed to delete vulnerability.');
     }
   };
+
   
   const toggleItemCompletion = async (itemId, currentStatus) => {
     try {
@@ -179,6 +207,26 @@ export default function ViewTest() {
       setErrorMessage('Failed to update item status.');
     }
   };
+  const generatePDF = () => {
+    const doc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'pt',
+      format: 'a4',
+    });
+
+    // Use the `html` method to render the content into the PDF
+    doc.html(pdfRef.current, {
+      callback: (doc) => {
+        doc.save(`${test.title}_vulnerabilities_report.pdf`); // Save the PDF
+      },
+      margin: [20, 50, 40, 30], // top, right, bottom, left
+      html2canvas: {
+        scale: 0.8, // Adjust the scale for better rendering
+    
+      },
+      autoPaging:true,
+    });
+  };
   const reloadPage = () => {
     window.location.reload();
   };
@@ -195,7 +243,60 @@ export default function ViewTest() {
   return (
     
     <div>
+      
       <h2 className="text-2xl font-bold mb-6 text-center">{test.title}</h2>
+      {test.completed ? (
+        
+        <div className="text-center space-y-4">
+          <h2 className="text-2xl font-bold mb-6 text-center">{test.title}</h2>
+        <button
+          onClick={handleCompleteTest}
+          className="bg-yellow-500 text-white py-2 px-4 rounded-lg hover:bg-yellow-600 transition"
+        >
+          Undo Completion
+        </button>
+        <div ref={pdfRef} className="pdf-content"
+        style={{
+          maxWidth: '700px', // Set maximum width for the content
+          margin: '0 auto', // Center the content
+          wordWrap: 'break-word', // Ensure long words wrap properly
+          overflowWrap: 'break-word', // Handle long unbreakable text
+        }}
+        >
+          <img 
+        src="/src/components/logo.png" 
+        alt="Tramonto Logo<br>" 
+        className="h-10 w-auto"
+      />
+        <h3 className="text-xl font-bold mb-4"
+        style={{ paddingLeft: '200px' }}
+        >								{test.title}</h3>
+        <p><strong>Test Title:</strong> {test.title}</p>
+        <p><strong>Description:</strong> {test.description}</p>
+        <p><strong>Date of test:</strong> {test.initial_date}-{test.final_date}</p>
+
+        <h4 className="text-lg font-bold mt-4"
+        style={{ paddingLeft: '200px' }}>Vulnerabilities:</h4>
+        <ul className="list-disc pl-5">
+          {vulnerabilities.map((vuln, index) => (
+            <li key={index} className="mb-4">
+              <p><strong>Name:</strong> {vuln.vuln}</p>
+              <p><strong>Description:</strong> {vuln.description}</p>
+              <p><strong>Success:</strong> {vuln.success ? 'Yes' : 'No'}</p>
+              {vuln.tools && vuln.tools.length > 0 && (
+                <p><strong>Tools:</strong> {vuln.tools.map((tool) => tool.name).join(', ')}</p>
+              )}
+            </li>
+          ))}
+        </ul>
+        
+      </div>
+        <button onClick={generatePDF} className="bg-blue-500 text-white px-4 py-2 rounded-lg">
+  Generate PDF
+</button>
+      </div>
+      ) : (
+      <>
       <div className="flex border-b border-gray-300 mb-4">
         <button
           onClick={() => setActiveTab('test')}
@@ -205,6 +306,8 @@ export default function ViewTest() {
         >
           Test Information
         </button>
+
+        <div class="dividerh"/>
         <button
           onClick={() => setActiveTab('checklist')}
           className={`px-4 py-2 ${
@@ -213,6 +316,8 @@ export default function ViewTest() {
         >
           Checklist
         </button>
+
+        <div class="dividerh"/>
         <button
           onClick={() => setActiveTab('vulnerabilities')}
           className={`px-4 py-2 ${
@@ -221,12 +326,16 @@ export default function ViewTest() {
         >
           Vulnerabilities
         </button>
+      
       </div>
       
       <div className="flex-1">
       {activeTab === 'test' && (
+      
       <div>
+        
         <h2 className="text-2xl font-bold mb-6 text-center">{test.title}</h2> 
+
         <p><strong>Description:</strong> {test.description}</p>
         <p><strong>initial date:</strong> {test.initial_date}</p>
         <p><strong>final date:</strong> {test.final_date}</p>
@@ -236,7 +345,8 @@ export default function ViewTest() {
         <p><strong>Starting Point:</strong> {test.starting_point}</p>
         <p><strong>Vectors:</strong> {test.vector}</p>
         <p><strong>Completed:</strong> {test.completed ? 'Yes' : 'No'}</p>
-        <p><strong>Creator:</strong> {test.creator.name}</p>
+        <p><strong>Creator:</strong> {test.creator.name}</p> 
+
         <p><strong>Testers:</strong></p>
         <ul>
           {test.testers.map((tester) => (
@@ -245,19 +355,23 @@ export default function ViewTest() {
         </ul>
         {isCreator && ( // Render Edit and Delete buttons only for the creator
           
-          <div className="mt-4">
+          <div className="mt-4 gap-4">
             <button
               onClick={() => navigate(`/tests/${testId}/update`)} // Navigate to the edit page
+              style={{ marginright: '40px' }}
               className="border px-4 py-2 rounded-lg mb-2 text-white"
             >
               Edit Test
             </button>
+            <div class="dividerh"/>
             <button
               onClick={handleDelete} // Call the delete handler
+              style={{ marginleft: '40px' }}
               className="border px-4 py-2 rounded-lg mb-2 text-white"
             >
               Delete Test
             </button>
+            <div class="dividerv"/>
             <h2 className="text-lg font-bold mb-2">Add User to Test</h2>
             <input
             type="email"
@@ -272,10 +386,19 @@ export default function ViewTest() {
             >
               Add User
             </button>
+            <button
+          onClick={handleCompleteTest}
+          className=" bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition mt-4"
+        >
+          complete test
+        </button>
           {successMessage && <p className="text-green-500 mt-2">{successMessage}</p>}
           {errorMessage && <p className="text-red-500 mt-2">{errorMessage}</p>}
+          
           </div>
+          
         )}
+        
         <button
           onClick={() => navigate('/tests')}
           className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition mt-4"
@@ -287,7 +410,7 @@ export default function ViewTest() {
         {activeTab === 'checklist' && (
           <div>
       {!test.checklist && (
-      <div className="bg-gray-50 rounded-lg p-4 mb-6">
+      <div className=" rounded-lg p-4 mb-6">
         <h2 className="text-lg font-semibold mb-4">Relate a Checklist</h2>
         <div className="space-y-4">
           <div>
@@ -315,7 +438,8 @@ export default function ViewTest() {
       </div>
       )}
       {test.checklist && (
-        <div className="bg-gray-50 rounded-lg p-4">
+        
+        <div className=" rounded-lg p-4">
           <h2 className="text-lg font-semibold mb-6"> {test.checklist.name}</h2>
           
            <ul className="space-y-4">
@@ -339,6 +463,7 @@ export default function ViewTest() {
                       : 'bg-gray-500 text-white hover:bg-gray-600'
                   } transition`}
                 >
+                  
                 {loadingItemIds.includes(item.id) ? 'Updating...' : item.completed ? 'Mark Incomplete' : 'Mark Complete'}
             </button>
               </li>
@@ -457,7 +582,9 @@ export default function ViewTest() {
       </div>
         )}
     </div>
-    
+    </> )}
     </div>
+    
   );
+  
 }

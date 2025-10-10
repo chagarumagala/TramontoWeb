@@ -12,7 +12,16 @@ body {
   height: 100vh;
   overflow: auto;
 }
-
+.dividerh{
+  width:5px;
+  height:auto;
+  display:inline-block;
+}
+.dividerv{
+  width:5px;
+  margin-bottom: 20px;
+  display: block;
+}
 /* Layout wrapper */
 .app-container {
   display: flex;

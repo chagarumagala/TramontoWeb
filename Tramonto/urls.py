@@ -34,6 +34,7 @@ urlpatterns = [
     path('vulnerabilities/<int:vuln_id>/delete/', views.delete_vulnerability, name='delete_vulnerability'),
     path('tests/<int:test_id>/vulnerabilities/<int:vuln_id>/edit/', views.edit_vulnerability, name='edit_vulnerability'),
     path('vulnerabilities/<int:vuln_id>/', views.fetch_vulnerability, name='fetch_vulnerability'),
+    path('tests/<int:test_id>/complete/', views.complete_test, name='complete_test')
 
 ]
 

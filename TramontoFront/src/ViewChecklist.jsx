@@ -122,6 +122,7 @@ const ViewChecklist = () => {
   return (
     <div className="p-6 pt-20">
         <h1 className="text-2xl font-bold mb-4 text-left">Create New Checklist</h1> 
+        <h1 className="text-2xl font-bold mb-4 text-left">Create New Checklist</h1> 
       <div className="flex justify-between items-start mb-6">
 
 
