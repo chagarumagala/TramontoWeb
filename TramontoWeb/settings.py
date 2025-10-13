@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
-
+from datetime import timedelta
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -40,7 +40,8 @@ INSTALLED_APPS = [
     'Tramonto.apps.TramontoConfig',
     'rest_framework',
     'corsheaders',
-    'rest_framework_simplejwt'
+    'channels',
+    'rest_framework_simplejwt',
 ]
 
 MIDDLEWARE = [
@@ -73,11 +74,23 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'TramontoWeb.wsgi.application'
-
+ASGI_APPLICATION = 'TramontoWeb.asgi.application'
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [('127.0.0.1', 6379)],  # Redis server
+        },
+    },
+}
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ),
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',  # For session-based auth
+        'rest_framework_simplejwt.authentication.JWTAuthentication',  # For JWT auth
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',  # Require authentication by default
+    ],
 }
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
@@ -98,6 +111,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:8000",
     
 ]
+CORS_ALLOW_CREDENTIALS = True  # Allow cookies to be sent
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 
@@ -125,7 +139,10 @@ LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
 
 USE_I18N = True
-
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=30),
+}
 USE_TZ = True
 SESSION_COOKIE_AGE = 12 * 60 * 60  # 12 hours in seconds
 

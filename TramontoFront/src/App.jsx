@@ -18,6 +18,7 @@ import Checklists from './Checklists';
 import CreateChecklist from './CreateChecklist';
 import ViewChecklist from './ViewChecklist';
 import CreateVuln from './CreateVuln';
+import Chatroom from './Chatroom';
 function App() {
   return (
     <Router>
@@ -44,7 +45,8 @@ function App() {
           <Route path="/checklists/:checklistId" element={<ViewChecklist />} />
           <Route path="/tests/:testId/vulnerabilities/create" element={<CreateVuln />} />
           <Route path="/tests/:testId/vulnerabilities/:vulnId/edit" element={<CreateVuln isEditMode={true}/>} />
-          
+          <Route path="/tests/:testId/chat" element={<Chatroom />} />
+
         </Route>
       </Routes>
     </Router>

@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
-
+from django.db.models import Prefetch
 from django.conf import settings
 class UserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
@@ -117,3 +117,40 @@ class Vulnerabilities(models.Model):
     tools = models.ManyToManyField(
         Tools
     )
+
+class ConversationManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().prefetch_related(
+            Prefetch('participants', queryset=Users.objects.only('id', 'name'))
+        )
+
+
+class Conversation(models.Model):
+    participants = models.ManyToManyField(Users, related_name='conversations')
+    created_at = models.DateTimeField(auto_now_add=True)
+    objects = ConversationManager()
+
+
+    def __str__(self):
+        participant_names = " ,".join([user.username for user in self.participants.all()])
+        return f'Conversation with {participant_names}'
+
+
+class Message(models.Model):
+    conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE, related_name='messages')
+    sender = models.ForeignKey(Users, on_delete=models.CASCADE)
+    content = models.TextField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+
+    def __str__(self):
+        return f'Message from {self.sender.username} in {self.content[:20]}'
+    
+class ChatMessage(models.Model):
+    test_id = models.IntegerField()
+    sender = models.ForeignKey(Users, on_delete=models.CASCADE)
+    message = models.TextField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.sender.username}: {self.message[:30]}"

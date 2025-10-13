@@ -3,6 +3,7 @@ import { useParams, useNavigate,useLocation } from 'react-router-dom';
 import axios from 'axios';
 import Cookies from 'js-cookie';
 import { jsPDF } from 'jspdf'; // Import jsPDF for PDF generation
+import { Link } from 'react-router-dom';
 
 export default function ViewTest() {
   const { testId } = useParams(); // Get the test ID from the URL
@@ -273,22 +274,38 @@ export default function ViewTest() {
         >								{test.title}</h3>
         <p><strong>Test Title:</strong> {test.title}</p>
         <p><strong>Description:</strong> {test.description}</p>
-        <p><strong>Date of test:</strong> {test.initial_date}-{test.final_date}</p>
+        <p><strong>Date of test:</strong> {test.initial_date}/{test.final_date}</p>
 
+        <table className="table-auto w-full border-collapse border border-black-300">
+        <thead>
+        <tr>
+          <th className="border border-black-300 px-4 py-7 text-center">Critical</th>
+          <th className="border border-black-300 px-4 py-2 text-center">High</th>
+          <th className="border border-black-300 px-4 py-2 text-center">Medium</th>
+          <th className="border border-black-300 px-4 py-2 text-center">Low</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+          <td className="border border-black-300 px-4 py-2 text-center">Alfreds Futterkiste</td>
+          <td className="border border-black-300 px-4 py-2 text-center">Maria Anders</td>
+          <td className="border border-black-300 px-4 py-2 text-center">Germany</td>
+          <td className="border border-black-300 px-4 py-2 text-center">Germany</td>
+        </tr>
+        </tbody>
+        </table>
         <h4 className="text-lg font-bold mt-4"
-        style={{ paddingLeft: '200px' }}>Vulnerabilities:</h4>
-        <ul className="list-disc pl-5">
+        style={{ paddingLeft: '200px' }}>Vulnerabilities:</h4> 
           {vulnerabilities.map((vuln, index) => (
             <li key={index} className="mb-4">
-              <p><strong>Name:</strong> {vuln.vuln}</p>
+              <p><strong>sypnosis:</strong> {vuln.vuln}</p>
               <p><strong>Description:</strong> {vuln.description}</p>
-              <p><strong>Success:</strong> {vuln.success ? 'Yes' : 'No'}</p>
+              <p><strong>recommendation:</strong> {vuln.recommendation}</p>
               {vuln.tools && vuln.tools.length > 0 && (
                 <p><strong>Tools:</strong> {vuln.tools.map((tool) => tool.name).join(', ')}</p>
               )}
             </li>
-          ))}
-        </ul>
+          ))} 
         
       </div>
         <button onClick={generatePDF} className="bg-blue-500 text-white px-4 py-2 rounded-lg">
@@ -297,6 +314,12 @@ export default function ViewTest() {
       </div>
       ) : (
       <>
+      <Link
+        to={`/tests/${testId}/chat`}
+        className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
+      >
+        Go to Chatroom
+      </Link>
       <div className="flex border-b border-gray-300 mb-4">
         <button
           onClick={() => setActiveTab('test')}

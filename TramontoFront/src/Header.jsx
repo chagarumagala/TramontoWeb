@@ -7,23 +7,6 @@ const Header = () => {
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const accessToken = localStorage.getItem('access_token');
-        const response = await axios.get('http://127.0.0.1:8000/viewprofile/', {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        });
-        setUser(response.data);
-      } catch (err) {
-        console.error('Error fetching user:', err.response?.data);
-      }
-    };
-
-    fetchUser();
-  }, []);
 
   const handleLogout = () => {
     // Clear all authentication tokens from localStorage
