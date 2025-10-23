@@ -28,26 +28,17 @@ const Header = () => {
           <h4 className="text-2xl font-bold mb-6">Tramonto</h4>
           <h4 className="text-2xl font-bold mb-6">Tramonto</h4>
           <nav className="space-y-4">
-            <Link to="/dashboard" className="block py-7 px-7 rounded hover:bg-gray-700 hover:text-red-400 transition-colors">
+            <Link to="/dashboard" className="block py-7 px-7 rounded text-4xl hover:bg-gray-700 hover:text-red-400 transition-colors">
               Dashboard
             </Link>
-            <Link to="/tests" className="block py-2 px-3 rounded hover:bg-gray-700 hover:text-red-400 transition-colors">
+            <Link to="/tests" className="block py-7 px-7 rounded text-4xl hover:bg-gray-700 hover:text-red-400 transition-colors">
               Tests
             </Link>
-            <Link to="/tools" className="block py-2 px-3 rounded hover:bg-gray-700 hover:text-red-400 transition-colors">
+            <Link to="/tools" className="block py-2 px-3 rounded text-4xl hover:bg-gray-700 hover:text-red-400 transition-colors">
               Tools
             </Link>
-            <Link to="/checklists" className="block py-2 px-3 rounded hover:bg-gray-700 hover:text-red-400 transition-colors">
+            <Link to="/checklists" className="block py-2 px-3 rounded text-4xl hover:bg-gray-700 hover:text-red-400 transition-colors">
               Checklists
-            </Link>
-            <Link to="/manage" className="block py-2 px-3 rounded hover:bg-gray-700 hover:text-red-400 transition-colors">
-              Manage
-            </Link>
-            <Link to="/permissions" className="block py-2 px-3 rounded hover:bg-gray-700 hover:text-red-400 transition-colors">
-              Permissions
-            </Link>
-            <Link to="/reports" className="block py-2 px-3 rounded hover:bg-gray-700 hover:text-red-400 transition-colors">
-              Reports
             </Link>
           </nav>
         </div>

@@ -75,14 +75,22 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'TramontoWeb.wsgi.application'
 ASGI_APPLICATION = 'TramontoWeb.asgi.application'
+ 
+#CHANNEL_LAYERS = {
+#    'default': {
+#        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+#        'CONFIG': {
+#            'hosts': [('127.0.0.1', 6379)],  # Redis server
+#        },
+#    },
+#}
+# In settings.py - comment out Redis and use this instead
 CHANNEL_LAYERS = {
     'default': {
-        'BACKEND': 'channels_redis.core.RedisChannelLayer',
-        'CONFIG': {
-            'hosts': [('127.0.0.1', 6379)],  # Redis server
-        },
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
     },
-}
+} 
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.SessionAuthentication',  # For session-based auth

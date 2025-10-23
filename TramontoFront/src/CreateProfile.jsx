@@ -27,7 +27,7 @@ const CreateProfile = () => {
         is_client: isClient, // Send account type to backend
       });
       setSuccessMessage('Account created successfully!');
-      setTimeout(() => navigate('/'), 2000); // Redirect to login page after 2 seconds
+      setTimeout(() => navigate('/'), 1000); // Redirect to login page after 2 seconds
     } catch (err) {
       console.error('Error creating account:', err.response?.data);
       setErrorMessage('Failed to create account. Please try again.');
@@ -36,9 +36,8 @@ const CreateProfile = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-black-100">
-      <div className="bg-black p-8 rounded-lg shadow-md w-96">
-        <h2 className="text-2xl font-bold mb-6 text-center">Create Account</h2>
-        <h2 className="text-2xl font-bold mb-6 text-center">Create Account</h2>
+      <div className="bg-white p-8 rounded-lg shadow-md w-96">
+        <h2 className="text-2xl font-bold mb-6 text-center">Create Account</h2> 
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>

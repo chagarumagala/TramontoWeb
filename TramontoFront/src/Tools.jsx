@@ -107,7 +107,7 @@ const Tools = () => {
       </p>
 
       {/* Add Tool Form */}
-      <div className="bg-gray-50 rounded-lg p-4 mb-6">
+      <div className="  rounded-lg p-4 mb-6">
         <h2 className="text-lg font-semibold mb-4">Add New Tool</h2>
         <form onSubmit={addTool} className="space-y-4">
           <div>
@@ -164,7 +164,7 @@ const Tools = () => {
         </div>
       ) : (
         <div className="overflow-x-auto">
-          <table className="table-auto w-full border-collapse border border-gray-300">
+          <table className="custom-table">
             <thead>
               <tr className="bg-gray-100">
                 <th className="border border-gray-300 px-4 py-2 text-center">Name</th>

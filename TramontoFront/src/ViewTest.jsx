@@ -63,8 +63,9 @@ export default function ViewTest() {
 
     fetchTest();
     fetchChecklists();
+    
   }, [testId, location.state]);
- 
+  
   const handleAddUser = async () => {
     try {
       const accessToken = localStorage.getItem('access_token');
@@ -208,6 +209,27 @@ export default function ViewTest() {
       setErrorMessage('Failed to update item status.');
     }
   };
+  const getVulnerabilityCounts = () => {
+    if (!vulnerabilities || vulnerabilities.length === 0) {
+      return { critical: 0, high: 0, medium: 0, low: 0 };
+    }
+  
+    return vulnerabilities.reduce((counts, vuln) => {
+      const score = parseFloat(vuln.severity_score || 0);
+      
+      if (score >= 9.0 && score <= 10.0) {
+        counts.critical++;
+      } else if (score >= 7.0 && score <= 8.9) {
+        counts.high++;
+      } else if (score >= 4.0 && score <= 6.9) {
+        counts.medium++;
+      } else if (score < 4.0) {
+        counts.low++;
+      }
+      
+      return counts;
+    }, { critical: 0, high: 0, medium: 0, low: 0 });
+  };
   const generatePDF = () => {
     const doc = new jsPDF({
       orientation: 'portrait',
@@ -276,24 +298,160 @@ export default function ViewTest() {
         <p><strong>Description:</strong> {test.description}</p>
         <p><strong>Date of test:</strong> {test.initial_date}/{test.final_date}</p>
 
-        <table className="table-auto w-full border-collapse border border-black-300">
-        <thead>
-        <tr>
-          <th className="border border-black-300 px-4 py-7 text-center">Critical</th>
-          <th className="border border-black-300 px-4 py-2 text-center">High</th>
-          <th className="border border-black-300 px-4 py-2 text-center">Medium</th>
-          <th className="border border-black-300 px-4 py-2 text-center">Low</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr>
-          <td className="border border-black-300 px-4 py-2 text-center">Alfreds Futterkiste</td>
-          <td className="border border-black-300 px-4 py-2 text-center">Maria Anders</td>
-          <td className="border border-black-300 px-4 py-2 text-center">Germany</td>
-          <td className="border border-black-300 px-4 py-2 text-center">Germany</td>
-        </tr>
-        </tbody>
-        </table>
+        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+  <h3 className="text-xl font-bold mb-4 text-center">Vulnerability Severity Summary</h3>
+  
+  {(() => {
+    const counts = getVulnerabilityCounts();
+    const total = counts.critical + counts.high + counts.medium + counts.low;
+    
+    return (
+      <div>
+        {/* Summary Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          {/* Critical */}
+          <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center">
+                  <span className="text-white text-sm font-bold">!</span>
+                </div>
+              </div>
+              <div className="ml-3">
+                <p className="text-sm font-medium text-red-800">Critical</p>
+                <p className="text-2xl font-bold text-red-900">{counts.critical}</p>
+                <p className="text-xs text-red-600">9.0 - 10.0</p>
+              </div>
+            </div>
+          </div>
+
+          {/* High */}
+          <div className="bg-orange-50 border-l-4 border-orange-500 p-4 rounded">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center">
+                  <span className="text-white text-sm font-bold">H</span>
+                </div>
+              </div>
+              <div className="ml-3">
+                <p className="text-sm font-medium text-orange-800">High</p>
+                <p className="text-2xl font-bold text-orange-900">{counts.high}</p>
+                <p className="text-xs text-orange-600">7.0 - 8.9</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Medium */}
+          <div className="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <div className="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
+                  <span className="text-white text-sm font-bold">M</span>
+                </div>
+              </div>
+              <div className="ml-3">
+                <p className="text-sm font-medium text-yellow-800">Medium</p>
+                <p className="text-2xl font-bold text-yellow-900">{counts.medium}</p>
+                <p className="text-xs text-yellow-600">4.0 - 6.9</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Low */}
+          <div className="bg-green-50 border-l-4 border-green-500 p-4 rounded">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                  <span className="text-white text-sm font-bold">L</span>
+                </div>
+              </div>
+              <div className="ml-3">
+                <p className="text-sm font-medium text-green-800">Low</p>
+                <p className="text-2xl font-bold text-green-900">{counts.low}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="dividerv"/>
+        {/* Progress Bar Summary */}
+        <div className="bg-gray-100 rounded-lg p-4">
+          <div className="flex justify-between items-center mb-2">
+            <span className="text-sm font-medium text-gray-700">Total Vulnerabilities</span>
+            <span className="text-sm font-bold text-gray-900">{total}</span>
+          </div>
+          
+          {total > 0 && (
+            <div className="w-full bg-gray-200 rounded-full h-4 mb-2">
+              <div className="h-4 rounded-full flex">
+                {counts.critical > 0 && (
+                  <div 
+                    className="bg-red-500 h-full rounded-l-full flex items-center justify-center"
+                    style={{ width: `${(counts.critical / total) * 100}%` }}
+                    title={`Critical: ${counts.critical}`}
+                  >
+                    {counts.critical > 0 && (
+                      <span className="text-xs text-white font-bold">
+                        {counts.critical}
+                      </span>
+                    )}
+                  </div>
+                )}
+                {counts.high > 0 && (
+                  <div 
+                    className="bg-orange-500 h-full flex items-center justify-center"
+                    style={{ width: `${(counts.high / total) * 100}%` }}
+                    title={`High: ${counts.high}`}
+                  >
+                    {counts.high > 0 && (
+                      <span className="text-xs text-white font-bold">
+                        {counts.high}
+                      </span>
+                    )}
+                  </div>
+                )}
+                {counts.medium > 0 && (
+                  <div 
+                    className="bg-yellow-500 h-full flex items-center justify-center"
+                    style={{ width: `${(counts.medium / total) * 100}%` }}
+                    title={`Medium: ${counts.medium}`}
+                  >
+                    {counts.medium > 0 && (
+                      <span className="text-xs text-white font-bold">
+                        {counts.medium}
+                      </span>
+                    )}
+                  </div>
+                )}
+                {counts.low > 0 && (
+                  <div 
+                    className="bg-green-500 h-full rounded-r-full flex items-center justify-center"
+                    style={{ width: `${(counts.low / total) * 100}%` }}
+                    title={`Low: ${counts.low}`}
+                  >
+                    {counts.low > 0 && (
+                      <span className="text-xs text-white font-bold">
+                        {counts.low}
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+          
+          <div className="flex justify-between text-xs text-gray-600">
+            <span>Critical: {((counts.critical / total) * 100 || 0).toFixed(1)}%</span>
+            <span>High: {((counts.high / total) * 100 || 0).toFixed(1)}%</span>
+            <span>Medium: {((counts.medium / total) * 100 || 0).toFixed(1)}%</span>
+            <span>Low: {((counts.low / total) * 100 || 0).toFixed(1)}%</span>
+          </div>
+        </div>
+
+         
+      </div>
+    );
+  })()}
+</div>
         <h4 className="text-lg font-bold mt-4"
         style={{ paddingLeft: '200px' }}>Vulnerabilities:</h4> 
           {vulnerabilities.map((vuln, index) => (
@@ -356,29 +514,149 @@ export default function ViewTest() {
       {activeTab === 'test' && (
       
       <div>
+      <h2 className="text-2xl font-bold mb-6 text-center">{test.title}</h2>
+      
+      {/* Test Information Table */}
+      <div className="bg-white rounded-lg shadow-lg overflow-hidden mb-6">
+        {/* Description */}
+        <div className="grid grid-cols-1 md:grid-cols-3 bg-white border-b border-gray-200">
+          <div className="px-6 py-4 bg-gray-50 font-semibold text-gray-700">
+            Description
+          </div>
+          <div className="col-span-2 px-6 py-4">
+            {test.description}
+          </div>
+        </div>
         
-        <h2 className="text-2xl font-bold mb-6 text-center">{test.title}</h2> 
+        {/* Initial Date */}
+        <div className="grid grid-cols-1 md:grid-cols-3 bg-gray-50 border-b border-gray-200">
+          <div className="px-6 py-4 bg-gray-100 font-semibold text-gray-700">
+            Initial Date
+          </div>
+          <div className="col-span-2 px-6 py-4">
+            {test.initial_date}
+          </div>
+        </div>
+        
+        {/* Final Date */}
+        <div className="grid grid-cols-1 md:grid-cols-3 bg-white border-b border-gray-200">
+          <div className="px-6 py-4 bg-gray-50 font-semibold text-gray-700">
+            Final Date
+          </div>
+          <div className="col-span-2 px-6 py-4">
+            {test.final_date}
+          </div>
+        </div>
+        
+        {/* Knowledge */}
+        <div className="grid grid-cols-1 md:grid-cols-3 bg-gray-50 border-b border-gray-200">
+          <div className="px-6 py-4 bg-gray-100 font-semibold text-gray-700">
+            Knowledge
+          </div>
+          <div className="col-span-2 px-6 py-4">
+            {test.knowledge}
+          </div>
+        </div>
+        
+        {/* Aggressivity */}
+        <div className="grid grid-cols-1 md:grid-cols-3 bg-white border-b border-gray-200">
+          <div className="px-6 py-4 bg-gray-50 font-semibold text-gray-700">
+            Aggressivity
+          </div>
+          <div className="col-span-2 px-6 py-4">
+            {test.aggressivity}
+          </div>
+        </div>
+        
+        {/* Approach */}
+        <div className="grid grid-cols-1 md:grid-cols-3 bg-gray-50 border-b border-gray-200">
+          <div className="px-6 py-4 bg-gray-100 font-semibold text-gray-700">
+            Approach
+          </div>
+          <div className="col-span-2 px-6 py-4">
+            {test.approach}
+          </div>
+        </div>
+        
+        {/* Starting Point */}
+        <div className="grid grid-cols-1 md:grid-cols-3 bg-white border-b border-gray-200">
+          <div className="px-6 py-4 bg-gray-50 font-semibold text-gray-700">
+            Starting Point
+          </div>
+          <div className="col-span-2 px-6 py-4">
+            {test.starting_point}
+          </div>
+        </div>
+        
+        {/* Vectors */}
+        <div className="grid grid-cols-1 md:grid-cols-3 bg-gray-50 border-b border-gray-200">
+          <div className="px-6 py-4 bg-gray-100 font-semibold text-gray-700">
+            Vectors
+          </div>
+          <div className="col-span-2 px-6 py-4">
+            {test.vector}
+          </div>
+        </div>
+        
+         
+        
+        {/* Creator */}
+        <div className="grid grid-cols-1 md:grid-cols-3 bg-white border-b border-gray-200">
+          <div className="px-6 py-4 bg-gray-50 font-semibold text-gray-700">
+            Test Leader
+          </div>
+          <div className="col-span-2 px-6 py-4">
+            {test.creator.name}
+          </div>
+        </div>
+        
+                <div className="grid grid-cols-1 md:grid-cols-3 bg-gray-50 border-b border-gray-200">
+          <div className="px-6 py-4 bg-gray-100 font-semibold text-gray-700">
+            Testers
+          </div>
+          <div className="col-span-2 px-6 py-4 flex justify-center">
+            <div className="flex flex-wrap gap-2 justify-center">
+              {test.testers.filter(tester => !tester.is_client).map((tester) => (
+                <span 
+                  key={tester.id} 
+                  className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium"
+                >
+                  {tester.name}
+                </span>
+              ))}
+              {test.testers.filter(tester => !tester.is_client).length === 0 && (
+                <span className="text-gray-500 italic">No testers assigned</span>
+              )}
+            </div>
+          </div>
+        </div>
 
-        <p><strong>Description:</strong> {test.description}</p>
-        <p><strong>initial date:</strong> {test.initial_date}</p>
-        <p><strong>final date:</strong> {test.final_date}</p>
-        <p><strong>Knowledge:</strong> {test.knowledge}</p>
-        <p><strong>Aggressivity:</strong> {test.aggressivity}</p>
-        <p><strong>Approach:</strong> {test.approach}</p>
-        <p><strong>Starting Point:</strong> {test.starting_point}</p>
-        <p><strong>Vectors:</strong> {test.vector}</p>
-        <p><strong>Completed:</strong> {test.completed ? 'Yes' : 'No'}</p>
-        <p><strong>Creator:</strong> {test.creator.name}</p> 
-
-        <p><strong>Testers:</strong></p>
-        <ul>
-          {test.testers.map((tester) => (
-            <li key={tester.id}>{tester.name}</li>
-          ))}
-        </ul>
+        {/* Clients */}
+        <div className="grid grid-cols-1 md:grid-cols-3 bg-white">
+          <div className="px-6 py-4 bg-gray-50 font-semibold text-gray-700">
+            Clients
+          </div>
+          <div className="col-span-2 px-6 py-4 flex justify-center">
+            <div className="flex flex-wrap gap-2 justify-center">
+              {test.testers.filter(tester => tester.is_client).map((client) => (
+                <span 
+                  key={client.id} 
+                  className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium"
+                >
+                  {client.name}
+                </span>
+              ))}
+              {test.testers.filter(tester => tester.is_client).length === 0 && (
+                <span className="text-gray-500 italic">No clients assigned</span>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
         {isCreator && ( // Render Edit and Delete buttons only for the creator
           
           <div className="mt-4 gap-4">
+            <div class="dividerv"/>
             <button
               onClick={() => navigate(`/tests/${testId}/update`)} // Navigate to the edit page
               style={{ marginright: '40px' }}
@@ -403,12 +681,14 @@ export default function ViewTest() {
             onChange={(e) => setEmailToAdd(e.target.value)}
             className="border px-4 py-2 rounded-lg mb-2"
             />
+            <div class="dividerh"/>
             <button
               onClick={handleAddUser}
               className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
             >
               Add User
             </button>
+            <div class="dividerh"/>
             <button
           onClick={handleCompleteTest}
           className=" bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition mt-4"
@@ -523,7 +803,7 @@ export default function ViewTest() {
         {vulnerabilities.length > 0 ? (
         
           <div className="overflow-x-auto">
-              <table className="table-auto border-collapse border border-gray-300 w-full">
+              <table className="custom-table">
                 <thead>
                   <tr className="bg-gray-100">
                     <th className="border border-gray-300 px-4 py-2">Name</th>

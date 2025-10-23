@@ -58,29 +58,29 @@ export default function ViewAllTests() {
       <p className="text-left mb-4">
         Manage your tests here. You can create, view, and delete tests as needed.
       </p>
-      
+      <div class="dividerh"/>
       <Button
         onClick={() => navigate('/tests/create')}
         className="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition mb-6"
       >
         Create New Test
       </Button>
-
+      <div class="dividerv"/>
       {/* Tests List or Empty State */}
       {tests.length === 0 ? (
         <div className="mt-6">
           <p className="text-gray-500 text-left">
-            No tests available yet. Create your first test to get started!
+            No tests available yet. Create your first test to get started
           </p>
         </div>
       ) : (
         <div className="overflow-x-auto">
-          <table className="table-auto w-full border-collapse border border-gray-300">
+          <table className="custom-table">
             <thead>
               <tr className="bg-gray-100">
-                <th className="border border-gray-300 px-4 py-2 text-left">Title</th>
-                <th className="border border-gray-300 px-4 py-2 text-left">Description</th>
-                <th className="border border-gray-300 px-4 py-2 text-left">Completed</th>
+                <th className="border border-gray-300 px-4 py-2 text-center">Title</th>
+                <th className="border border-gray-300 px-4 py-2 text-center">Description</th>
+                <th className="border border-gray-300 px-4 py-2 text-center">Completed</th>
               </tr>
             </thead>
             <tbody>

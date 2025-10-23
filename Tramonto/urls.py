@@ -4,6 +4,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 urlpatterns = [
     path('',views.index),
+    path('dashboard/', views.dashboard, name='dashboard'),
     path('tests/', views.getall_create_test, name='get_user_tests'),
     path('tests/create/', views.getall_create_test, name='create_test'),
     path('tests/<int:pk>/', views.view_edit_delete_test, name='get_test'),  # Retrieve a specific test

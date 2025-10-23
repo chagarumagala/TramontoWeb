@@ -7,6 +7,10 @@ class UserManager(BaseUserManager):
         if not email:
             raise ValueError('The Email field must be set')
         email = self.normalize_email(email)
+        if 'cnpj' in extra_fields and extra_fields['cnpj'] == '':
+            extra_fields['cnpj'] = None
+        if 'phone' in extra_fields and extra_fields['phone'] == '':
+            extra_fields['phone'] = None
         user = self.model(email=email, **extra_fields)
         user.set_password(password)  # Hash the password
         user.save(using=self._db)
@@ -17,7 +21,6 @@ class UserManager(BaseUserManager):
         extra_fields.setdefault('is_staff', True)
         return self.create_user(email, password, **extra_fields)
 
-# Create your models here.
 class Users(AbstractBaseUser,PermissionsMixin):
     cnpj = models.BigIntegerField(null=True, blank=True)
     company_name = models.CharField(max_length=45, null=True, blank=True)

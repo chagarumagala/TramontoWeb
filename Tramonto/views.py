@@ -8,21 +8,42 @@ from django.db.models import Subquery, OuterRef,JSONField
 from rest_framework_simplejwt.views import TokenObtainPairView
 from .serializers import TestsSerializer
 from datetime import datetime
+from rest_framework.permissions import AllowAny
+
 import math
 @api_view(['GET'])
 def index(request):
     # Return a simple JSON response
     return JsonResponse({'message': 'Welcome to Tramonto API!'})
+
+@api_view(['GET'])
+def dashboard(request):
+    user = request.user 
+    user_tests = Tests.objects.filter(testers=user.id)
+    
+    completed_tests = user_tests.filter(completed=True).count()
+    pending_tests = user_tests.filter(completed=False).count()
+    user_vulns = Vulnerabilities.objects.filter(author=user.name).count()
+    return JsonResponse({
+        'pending_tests': pending_tests,
+        'completed_tests': completed_tests,
+        'total_vulns': user_vulns,
+    })
+    
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def register(request):
     name = request.data.get('name')
     email = request.data.get('email')
     password = request.data.get('password')
-    cnpj = request.data.get('cnpj')
-    company_name = request.data.get('company_name')
-    phone = request.data.get('phone')
+    cnpj = request.data.get('cnpj') or None
+    company_name = request.data.get('company_name') or None
+    phone = request.data.get('phone') or None
     is_client = request.data.get('is_client', False)  # Default to False if not provided
-
+    if cnpj == '':
+        cnpj = None
+    if phone == '':
+        phone = None
     if not name or not email or not password:
         return JsonResponse({'error': 'name, email, and password are required'}, status=400)
 
@@ -74,7 +95,7 @@ def getall_create_test(request):
         id = user.id
         # Get all tests related to the user
         tests = Tests.objects.filter(testers=id).values(
-            'id', 'title', 'description','initial_date','final_date', 'knowledge', 'aggressivity', 'approach', 'starting_point', 'vector'
+            'id', 'title', 'description','completed','initial_date','final_date', 'knowledge', 'aggressivity', 'approach', 'starting_point', 'vector'
         )
         
         # Return the tests as a JSON response
