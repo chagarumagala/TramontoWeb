@@ -9,7 +9,8 @@ export default function CreateVuln({ isEditMode = false }) {
   const [code, setCode] = useState('');
   const [tools, setTools] = useState([]); // List of all tool
   const [selectedTools, setSelectedTools] = useState([]); // Selected tool IDs
-
+  const [expected_results, setExpectedResults] = useState('');
+  const [actual_results, setActualResults] = useState('');
   const [attack_vector, setAttackVector] = useState('N');
     const [attack_complexity, setAttackComplexity] = useState('L');
     const [privileges_required, setPrivilegesRequired] = useState('N');
@@ -41,6 +42,8 @@ export default function CreateVuln({ isEditMode = false }) {
             setDescription(vuln.description);
             setSuccess(vuln.success);
             setRecommendation(vuln.recommendation);
+            setExpectedResults(vuln.expected_results);
+            setActualResults(vuln.actual_results);
             setAttackVector(vuln.attack_vector);
             setAttackComplexity(vuln.attack_complexity);
             setPrivilegesRequired(vuln.privileges_required);
@@ -88,6 +91,8 @@ export default function CreateVuln({ isEditMode = false }) {
             code ,
             attack_vector ,
             attack_complexity  ,
+            expected_results,
+            actual_results,
             privileges_required ,
             user_interaction ,
             scope,
@@ -117,6 +122,8 @@ export default function CreateVuln({ isEditMode = false }) {
             code ,
             attack_vector ,
             attack_complexity  ,
+            expected_results,
+            actual_results,
             privileges_required ,
             user_interaction ,
             scope,
@@ -192,10 +199,27 @@ export default function CreateVuln({ isEditMode = false }) {
       {success && (
         <>
           <div>
-            <label className="block text-white-700">existing CVE:</label>
-            <textarea
+            <label className="block text-white-700">CVE code:</label>
+            <input
+              type="text"
               value={code}
               onChange={(e) => setCode(e.target.value)}
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div>
+            <label className="block text-white-700">expected result:</label>
+            <textarea
+              value={expected_results}
+              onChange={(e) => setExpectedResults(e.target.value)}
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            ></textarea>
+          </div>
+          <div>
+            <label className="block text-white-700">actual result:</label>
+            <textarea
+              value={actual_results}
+              onChange={(e) => setActualResults(e.target.value)}
               className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             ></textarea>
           </div>

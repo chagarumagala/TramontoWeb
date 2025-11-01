@@ -98,6 +98,10 @@ class Tools(models.Model):
 class Vulnerabilities(models.Model):
     vuln=models.CharField(max_length=100,default="vuln")
     description = models.TextField(null=True, blank=True)
+    expected_results = models.TextField(null=True, blank=True)
+
+    actual_results = models.TextField(null=True, blank=True)
+
     success = models.BooleanField(default=True)
     code = models.CharField(null=True, blank=True)
     score = models.FloatField(null=True, blank=True)

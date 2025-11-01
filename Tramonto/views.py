@@ -149,11 +149,15 @@ def view_edit_delete_test(request, pk):
             vulnerabilities_data = []
             for vuln in vulnerabilities:
                 tools = Tools.objects.filter(vulnerabilities=vuln).values('id', 'name', 'link')
+                
                 vulnerabilities_data.append({
                     'id': vuln.id,
                     'vuln': vuln.vuln,
                     'description': vuln.description,
+                    'expected_results': vuln.expected_results,
+                    'actual_results': vuln.actual_results,
                     'success': vuln.success,
+                    'score': vuln.score,
                     'code': vuln.code,
                     'vector': vuln.vector,
                     'recommendation': vuln.recommendation,
@@ -633,6 +637,8 @@ def create_vulnerability(request,test_id):
             success=data.get('success', True),
             score=calculate_score(data),
             vector=create_vuln_vector(data),
+            expected_results=data.get('expected_results'),
+            actual_results=data.get('actual_results'),
             code=data.get('code'),
             attack_vector=data.get('attack_vector'),
             attack_complexity=data.get('attack_complexity'),
@@ -697,7 +703,10 @@ def edit_vulnerability(request, vuln_id,test_id):
         data = request.data
         vulnerability.vuln = data.get('vuln', vulnerability.vuln)
         vulnerability.description = data.get('description', vulnerability.description)
+        vulnerability.score = calculate_score(data)
         vulnerability.vector = create_vuln_vector(data)
+        vulnerability.expected_results = data.get('expected_results', vulnerability.expected_results)
+        vulnerability.actual_results = data.get('actual_results', vulnerability.actual_results)
         vulnerability.success = data.get('success', vulnerability.success)
         vulnerability.code = data.get('code', vulnerability.code)
         vulnerability.recommendation = data.get('recommendation', vulnerability.recommendation)
@@ -747,6 +756,8 @@ def fetch_vulnerability(request, vuln_id):
             'code': vulnerability.code,
             'vector': vulnerability.vector,
             'score': vulnerability.score,
+            'expected_results': vulnerability.expected_results,
+            'actual_results': vulnerability.actual_results,
             'attack_vector': vulnerability.attack_vector,
             'attack_complexity': vulnerability.attack_complexity,
             'privileges_required': vulnerability.privileges_required,

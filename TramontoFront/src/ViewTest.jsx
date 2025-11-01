@@ -19,6 +19,7 @@ export default function ViewTest() {
   const [loadingItemIds, setLoadingItemIds] = useState([]);
   const [vulnerabilities, setVulnerabilities] = useState([]);
   const pdfRef = useRef(); // Reference to the HTML content
+  const [isPartialPDF, setIsPartialPDF] = useState(false);
 
   const navigate = useNavigate();
   const [emailToAdd, setEmailToAdd] = useState('');
@@ -215,7 +216,7 @@ export default function ViewTest() {
     }
   
     return vulnerabilities.reduce((counts, vuln) => {
-      const score = parseFloat(vuln.severity_score || 0);
+      const score = parseFloat(vuln.score || 0);
       
       if (score >= 9.0 && score <= 10.0) {
         counts.critical++;
@@ -230,25 +231,64 @@ export default function ViewTest() {
       return counts;
     }, { critical: 0, high: 0, medium: 0, low: 0 });
   };
-  const generatePDF = () => {
-    const doc = new jsPDF({
-      orientation: 'portrait',
-      unit: 'pt',
-      format: 'a4',
-    });
-
-    // Use the `html` method to render the content into the PDF
-    doc.html(pdfRef.current, {
-      callback: (doc) => {
-        doc.save(`${test.title}_vulnerabilities_report.pdf`); // Save the PDF
-      },
-      margin: [20, 50, 40, 30], // top, right, bottom, left
-      html2canvas: {
-        scale: 0.8, // Adjust the scale for better rendering
+  const getSeverityInfo = (score) => {
+    const numScore = parseFloat(score) || 0;
     
-      },
-      autoPaging:true,
-    });
+    if (numScore >= 9.0) {
+      return { 
+        color: 'bg-red-100 text-red-800 border-red-200', 
+        label: 'Critical',
+        textColor: 'text-red-900'
+      };
+    } else if (numScore >= 7.0) {
+      return { 
+        color: 'bg-orange-100 text-orange-800 border-orange-200', 
+        label: 'High',
+        textColor: 'text-orange-900'
+      };
+    } else if (numScore >= 4.0) {
+      return { 
+        color: 'bg-yellow-100 text-yellow-800 border-yellow-200', 
+        label: 'Medium',
+        textColor: 'text-yellow-900'
+      };
+    } else {
+      return { 
+        color: 'bg-green-100 text-green-800 border-green-200', 
+        label: 'Low',
+        textColor: 'text-green-900'
+      };
+    }
+  };
+  const generatePDF = (partial = false) => {
+    setIsPartialPDF(partial); // Set the boolean before generating
+    
+    // Small delay to ensure state updates
+    setTimeout(() => {
+      const doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'pt',
+        format: 'a4',
+      });
+  
+      // Use the `html` method to render the content into the PDF
+      doc.html(pdfRef.current, {
+        callback: (doc) => {
+          const fileName = partial 
+            ? `${test.title}_summary_report.pdf`
+            : `${test.title}_complete_report.pdf`;
+          doc.save(fileName);
+          
+          // Reset the boolean after PDF generation
+          setIsPartialPDF(false);
+        },
+        margin: [30, 50, 40, 30], // top, right, bottom, left
+        html2canvas: {
+          scale: 0.8, // Adjust the scale for better rendering
+        },
+        autoPaging: true,
+      });
+    }, 100);
   };
   const reloadPage = () => {
     window.location.reload();
@@ -280,7 +320,7 @@ export default function ViewTest() {
         </button>
         <div ref={pdfRef} className="pdf-content"
         style={{
-          maxWidth: '700px', // Set maximum width for the content
+          maxWidth: '650px', // Set maximum width for the content
           margin: '0 auto', // Center the content
           wordWrap: 'break-word', // Ensure long words wrap properly
           overflowWrap: 'break-word', // Handle long unbreakable text
@@ -291,15 +331,14 @@ export default function ViewTest() {
         alt="Tramonto Logo<br>" 
         className="h-10 w-auto"
       />
-        <h3 className="text-xl font-bold mb-4"
+        <h4 className="text-xl font-bold mb-4"
         style={{ paddingLeft: '200px' }}
-        >								{test.title}</h3>
-        <p><strong>Test Title:</strong> {test.title}</p>
+        > Penetration Test Report</h4>
+        <p><strong>Title:</strong> {test.title}</p>
         <p><strong>Description:</strong> {test.description}</p>
         <p><strong>Date of test:</strong> {test.initial_date}/{test.final_date}</p>
-
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-  <h3 className="text-xl font-bold mb-4 text-center">Vulnerability Severity Summary</h3>
+        <div class="dividerv"/>
+        <div className="bg-white rounded-lg shadow-lg p-6 mb-6"> 
   
   {(() => {
     const counts = getVulnerabilityCounts();
@@ -308,7 +347,7 @@ export default function ViewTest() {
     return (
       <div>
         {/* Summary Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-6 md:grid-cols-4 gap-4 mb-6">
           {/* Critical */}
           <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded">
             <div className="flex items-center">
@@ -321,6 +360,7 @@ export default function ViewTest() {
                 <p className="text-sm font-medium text-red-800">Critical</p>
                 <p className="text-2xl font-bold text-red-900">{counts.critical}</p>
                 <p className="text-xs text-red-600">9.0 - 10.0</p>
+                <div class="dividerv"/>
               </div>
             </div>
           </div>
@@ -337,6 +377,7 @@ export default function ViewTest() {
                 <p className="text-sm font-medium text-orange-800">High</p>
                 <p className="text-2xl font-bold text-orange-900">{counts.high}</p>
                 <p className="text-xs text-orange-600">7.0 - 8.9</p>
+                <div class="dividerv"/>
               </div>
             </div>
           </div>
@@ -353,6 +394,7 @@ export default function ViewTest() {
                 <p className="text-sm font-medium text-yellow-800">Medium</p>
                 <p className="text-2xl font-bold text-yellow-900">{counts.medium}</p>
                 <p className="text-xs text-yellow-600">4.0 - 6.9</p>
+                <div class="dividerv"/>
               </div>
             </div>
           </div>
@@ -368,107 +410,80 @@ export default function ViewTest() {
               <div className="ml-3">
                 <p className="text-sm font-medium text-green-800">Low</p>
                 <p className="text-2xl font-bold text-green-900">{counts.low}</p>
+                <p className="text-xs text-green-600">3.9 - 0</p>
+                <div class="dividerv"/>
               </div>
             </div>
           </div>
         </div>
         <div class="dividerv"/>
         {/* Progress Bar Summary */}
-        <div className="bg-gray-100 rounded-lg p-4">
-          <div className="flex justify-between items-center mb-2">
-            <span className="text-sm font-medium text-gray-700">Total Vulnerabilities</span>
-            <span className="text-sm font-bold text-gray-900">{total}</span>
-          </div>
-          
-          {total > 0 && (
-            <div className="w-full bg-gray-200 rounded-full h-4 mb-2">
-              <div className="h-4 rounded-full flex">
-                {counts.critical > 0 && (
-                  <div 
-                    className="bg-red-500 h-full rounded-l-full flex items-center justify-center"
-                    style={{ width: `${(counts.critical / total) * 100}%` }}
-                    title={`Critical: ${counts.critical}`}
-                  >
-                    {counts.critical > 0 && (
-                      <span className="text-xs text-white font-bold">
-                        {counts.critical}
-                      </span>
-                    )}
-                  </div>
-                )}
-                {counts.high > 0 && (
-                  <div 
-                    className="bg-orange-500 h-full flex items-center justify-center"
-                    style={{ width: `${(counts.high / total) * 100}%` }}
-                    title={`High: ${counts.high}`}
-                  >
-                    {counts.high > 0 && (
-                      <span className="text-xs text-white font-bold">
-                        {counts.high}
-                      </span>
-                    )}
-                  </div>
-                )}
-                {counts.medium > 0 && (
-                  <div 
-                    className="bg-yellow-500 h-full flex items-center justify-center"
-                    style={{ width: `${(counts.medium / total) * 100}%` }}
-                    title={`Medium: ${counts.medium}`}
-                  >
-                    {counts.medium > 0 && (
-                      <span className="text-xs text-white font-bold">
-                        {counts.medium}
-                      </span>
-                    )}
-                  </div>
-                )}
-                {counts.low > 0 && (
-                  <div 
-                    className="bg-green-500 h-full rounded-r-full flex items-center justify-center"
-                    style={{ width: `${(counts.low / total) * 100}%` }}
-                    title={`Low: ${counts.low}`}
-                  >
-                    {counts.low > 0 && (
-                      <span className="text-xs text-white font-bold">
-                        {counts.low}
-                      </span>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-          
-          <div className="flex justify-between text-xs text-gray-600">
-            <span>Critical: {((counts.critical / total) * 100 || 0).toFixed(1)}%</span>
-            <span>High: {((counts.high / total) * 100 || 0).toFixed(1)}%</span>
-            <span>Medium: {((counts.medium / total) * 100 || 0).toFixed(1)}%</span>
-            <span>Low: {((counts.low / total) * 100 || 0).toFixed(1)}%</span>
-          </div>
-        </div>
-
+         
          
       </div>
     );
   })()}
 </div>
         <h4 className="text-lg font-bold mt-4"
-        style={{ paddingLeft: '200px' }}>Vulnerabilities:</h4> 
-          {vulnerabilities.map((vuln, index) => (
+        style={{ paddingLeft: '250px' }}>Vulnerabilities</h4> 
+        <div class="dividerv"/>
+          {vulnerabilities.filter(vuln => !isPartialPDF || vuln.success).map((vuln, index) => (
+            
             <li key={index} className="mb-4">
+
+              {(vuln.score >= 9.0) && (
+            <p className='text-red-600'>{vuln.vector}</p>  
+            )}
+            {(vuln.score >= 7.0 && vuln.score < 9.0) && (
+            <p className='text-orange-600'>{vuln.vector}</p>  
+            )}
+            {(vuln.score >= 4.0  && vuln.score < 7.0) && (
+            <p className='text-yellow-600'>{vuln.vector}</p>  
+            )}
+            {(vuln.score < 4.0 && vuln.score >= 0.0) && (
+            <p className='text-green-600'>{vuln.vector}</p>  
+            )}
               <p><strong>sypnosis:</strong> {vuln.vuln}</p>
               <p><strong>Description:</strong> {vuln.description}</p>
+              {vuln.code && vuln.code.trim() && (
+                <p><strong>CVE:</strong> {vuln.code}</p>
+              )}
+              {vuln.expected_results && !isPartialPDF &&(
+                <p><strong>expected result:</strong> {vuln.expected_results}</p>
+              )}
+              {vuln.actual_results && !isPartialPDF &&(
+                <p><strong>actual result:</strong> {vuln.actual_results}</p>
+              )}
               <p><strong>recommendation:</strong> {vuln.recommendation}</p>
               {vuln.tools && vuln.tools.length > 0 && (
                 <p><strong>Tools:</strong> {vuln.tools.map((tool) => tool.name).join(', ')}</p>
               )}
+              <div class="dividerv"/>
             </li>
           ))} 
         
       </div>
-        <button onClick={generatePDF} className="bg-blue-500 text-white px-4 py-2 rounded-lg">
-  Generate PDF
-</button>
+      <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-6">
+      <button
+        onClick={() => generatePDF(false)} // Complete PDF
+        className="bg-blue-500 text-white py-3 px-6 rounded-lg hover:bg-blue-600 transition flex items-center space-x-2"
+      >
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        <span>Generate Complete PDF Report</span>
+      </button>
+      
+      <button
+        onClick={() => generatePDF(true)} // Partial PDF
+        className="bg-green-500 text-white py-3 px-6 rounded-lg hover:bg-green-600 transition flex items-center space-x-2"
+      >
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        <span>Generate Summary PDF Report</span>
+      </button>
+    </div>
       </div>
       ) : (
       <>
